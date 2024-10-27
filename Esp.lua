@@ -1,26 +1,35 @@
-local players = game:GetService("Players")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
-function onRender()
-    for _, player in pairs(players:GetPlayers()) do
-        if player ~= players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local head = player.Character.HumanoidRootPart.Position
-            local screenPosition, onScreen = workspace.CurrentCamera:WorldToScreenPoint(head)
+-- Функция для создания ESP
+function createESP(player)
+    local highlight = Instance.new("Highlight")
+    highlight.Adornee = player.Character
+    highlight.FillColor = Color3.new(1, 0, 0) -- Красный цвет
+    highlight.FillTransparency = 0.5
+    highlight.OutlineColor = Color3.new(1, 1, 1)
+    highlight.OutlineTransparency = 0
+    highlight.Parent = player.Character
+end
 
-            if onScreen then
-                -- Рисуем ESP
-                local espBox = Instance.new("Frame")
-                espBox.Size = UDim2.new(0, 100, 0, 100)
-                espBox.Position = UDim2.new(0, screenPosition.X - 50, 0, screenPosition.Y - 50)
-                espBox.BackgroundColor3 = Color3.new(1, 0, 0)
-                espBox.BackgroundTransparency = 0.5
-                espBox.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-
-                
-                wait(1)
-                espBox:Destroy()
-            end
-        end
+-- Создание ESP для всех игроков в игре
+for _, player in ipairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer and player.Character then
+        createESP(player)
     end
 end
 
-game:GetService("RunService").RenderStepped:Connect(onRender)
+-- Создание ESP для новых игроков
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Wait()
+    createESP(player)
+end)
+
+-- Обновление ESP при смене персонажа
+LocalPlayer.CharacterAdded:Connect(function()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            createESP(player)
+        end
+    end
+end)
